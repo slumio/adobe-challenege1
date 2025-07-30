@@ -1,32 +1,63 @@
-# Adobe Hackathon: "Connecting the Dots" - Challenge 1A Solution
+# Adobe Hackathon: "Connecting the Dots" – Challenge 1A (Advanced PDF Outline Extractor)
 
-This repository contains the solution for **Round 1A: Understand Your Document**. The system is designed to extract a structured outline (Title, H1, H2, H3) from PDF documents efficiently and accurately, adhering to all specified constraints.
+This repository contains a robust and intelligent solution to **Challenge 1A – Understand Your Document**, designed for Adobe's "Connecting the Dots" Hackathon 2025. It extracts a structured outline (Title, H1, H2, H3) from PDF documents using a hybrid approach that combines heuristics, visual features, and clustering.
 
-### 1. Approach and Methodology
+---
 
-Our solution employs a **hybrid extraction strategy** to maximize accuracy and performance. [cite_start]This approach avoids relying solely on font sizes, which can be unreliable across different PDF structures[cite: 317].
+## 🔍 Problem Overview
 
-The logic follows two primary paths:
+Extract structured content from PDFs, focusing on:
+- **Title**
+- **Headings (H1, H2, H3)**
+- **Page mapping**
 
-1.  **Table of Contents (ToC) First**: The extractor first inspects the PDF for an embedded ToC. If a valid ToC exists, it is used to generate a precise outline. This is the fastest and most reliable method.
+The extractor should handle both well-structured documents (with ToC) and unstructured ones (without metadata or heading conventions).
 
-2.  **Heuristic Fallback Engine**: If no ToC is found, the system falls back to a smart heuristic engine. This engine:
-    * **Profiles Typography**: It performs a quick scan of the document to identify the distribution of font sizes, allowing it to distinguish between common body text and rarer, larger heading fonts.
-    * **Analyzes Heading Candidates**: A line of text is classified as a heading based on a combination of factors, including its font size profile, bold styling, and whether it follows common numbering patterns (e.g., "1. Introduction", "2.1 Background").
+---
 
-[cite_start]This design ensures robustness and high performance, and the code is modular for easy reuse in Round 1B[cite: 320].
+## 💡 Solution Highlights
 
-### 2. Libraries Used
+Our solution employs a **multi-phase hybrid extraction strategy**, inspired by academic principles from:
+- "Layout-Aware PDF Content Extraction" (ACM DocEng 2021)
+- "PDF Text Extraction with Deep Learning" (IEEE Access 2022)
 
-* **`PyMuPDF` (`fitz`)**: This library was chosen for its exceptional speed and comprehensive feature set. It provides efficient access to text blocks, font information, and document metadata, which is essential for our hybrid extraction strategy.
+### 📘 Strategy
 
-### 3. Build and Run Instructions
+1. **Phase 1: Table of Contents (ToC) Based Extraction**
+   - If the PDF contains a built-in ToC, use it to extract headings directly (accurate and fast).
 
-The solution is containerized with Docker for consistent and isolated execution.
+2. **Phase 2: Heuristic + Visual + Statistical Fallback**
+   - Analyze font distributions using **DBSCAN clustering**
+   - Detect heading candidates using:
+     - Font size relative to body text
+     - Bold/italic flags
+     - Position on page (e.g., centered headings)
+     - Title-case or uppercase detection
+     - Common heading patterns (e.g., `1.1`, `A.`, `Section`, etc.)
 
-#### Build the Docker Image
+3. **Title Extraction**
+   - Metadata → First-page largest font → Fallback to file name
 
-[cite_start]Navigate to the project's root directory and use the official build command[cite: 286].
+4. **Noise Resilience**
+   - Uses bounding box and spatial context for robust classification
+   - Deduplicates overlapping heading detections
+
+---
+
+## 🛠️ Technologies Used
+
+| Component      | Tool/Library          |
+|----------------|-----------------------|
+| PDF Processing | `PyMuPDF (fitz)`      |
+| ML Logic       | `DBSCAN (scikit-learn)` |
+| Math & Stats   | `numpy`, `scipy`, `statistics` |
+| Runtime Env    | Docker (containerized) |
+
+---
+
+## 🐳 Docker Setup
+
+### 🔧 Build Image
 
 ```bash
-docker build --platform linux/amd64 -t pdf-solution:latest .# adobe-challenege1
+docker build --platform linux/amd64 -t pdf-solution:latest .
